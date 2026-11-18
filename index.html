@@ -32,12 +32,12 @@
   <script>
     var canvas = document.querySelector("#unity-canvas");
     var buildUrl = "Build";
-    var loaderUrl = buildUrl + "/3adb736121b2d1d604e666aa4431b895.loader.js";
+    var loaderUrl = buildUrl + "/8c4d2d06e208fcf665d6779123fe4834.loader.js";
     var config = {
       arguments: [],
-      dataUrl: buildUrl + "/594dbcc920a3487360ee2fa781eefb7d.data.unityweb",
-      frameworkUrl: buildUrl + "/33190d0377b49df15be043427dd74214.framework.js.unityweb",
-      codeUrl: buildUrl + "/0a78f428fbf98fd75ef38e21c38899f7.wasm.unityweb",
+      dataUrl: buildUrl + "/20fa16b8832c147ac1e7d87ebadc79ea.data.unityweb",
+      frameworkUrl: buildUrl + "/350d4c10a3b7c479dc768aaf36559068.framework.js.unityweb",
+      codeUrl: buildUrl + "/04328592648f2a5a9f86fae5e7619569.wasm.unityweb",
       streamingAssetsUrl: "StreamingAssets",
       companyName: "DefaultCompany",
       productName: "Math Gate Runner",
@@ -64,7 +64,22 @@
         try {
           var sdk = new DiscordSDKBundle.DiscordSDK(DISCORD_CLIENT_ID);
           window.discordSdk = sdk;
-          sdk.ready().catch(function (e) { console.warn("Discord SDK ready failed", e); });
+          sdk.ready().then(function () {
+            // Вхід через Discord лише заради ніка в таблиці лідерів (scope identify).
+            // Код обмінюємо на ім'я в нашому воркері (URL Mapping "/api"), секрет застосунку живе тільки там.
+            return sdk.commands.authorize({ client_id: DISCORD_CLIENT_ID, response_type: "code", state: "", prompt: "none", scope: ["identify"] });
+          }).then(function (res) {
+            return fetch("/.proxy/api/discord/token", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ code: res.code })
+            });
+          }).then(function (r) {
+            if (!r.ok) throw new Error("token " + r.status);
+            return r.json();
+          }).then(function (u) {
+            if (u && u.id) window.discordUser = { id: String(u.id), name: u.global_name || u.username || "" };
+          }).catch(function (e) { console.warn("Discord login skipped", e); });
         } catch (e) { console.warn("Discord SDK init failed", e); }
       };
       document.head.appendChild(ds);
