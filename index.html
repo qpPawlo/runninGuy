@@ -32,12 +32,12 @@
   <script>
     var canvas = document.querySelector("#unity-canvas");
     var buildUrl = "Build";
-    var loaderUrl = buildUrl + "/0f8327594781e620e5d2edf724f30a9c.loader.js";
+    var loaderUrl = buildUrl + "/3adb736121b2d1d604e666aa4431b895.loader.js";
     var config = {
       arguments: [],
-      dataUrl: buildUrl + "/73d4523e9bfa7be0b5ae0528a75c3e45.data.unityweb",
+      dataUrl: buildUrl + "/594dbcc920a3487360ee2fa781eefb7d.data.unityweb",
       frameworkUrl: buildUrl + "/33190d0377b49df15be043427dd74214.framework.js.unityweb",
-      codeUrl: buildUrl + "/9614f9879b247f4de0915626ed41fd80.wasm.unityweb",
+      codeUrl: buildUrl + "/0a78f428fbf98fd75ef38e21c38899f7.wasm.unityweb",
       streamingAssetsUrl: "StreamingAssets",
       companyName: "DefaultCompany",
       productName: "Math Gate Runner",
@@ -53,6 +53,22 @@
         window.Telegram.WebApp.expand();
       }
     } catch (e) {}
+
+    // Discord Activity: гра відкрита всередині Discord (домен <id>.discordsays.com) — робимо рукостискання з клієнтом.
+    var DISCORD_CLIENT_ID = "1572523791018623037";
+    var isDiscord = /\.discordsays\.com$/.test(location.hostname) || new URLSearchParams(location.search).has("frame_id");
+    if (isDiscord) {
+      var ds = document.createElement("script");
+      ds.src = "discord-sdk.js";
+      ds.onload = function () {
+        try {
+          var sdk = new DiscordSDKBundle.DiscordSDK(DISCORD_CLIENT_ID);
+          window.discordSdk = sdk;
+          sdk.ready().catch(function (e) { console.warn("Discord SDK ready failed", e); });
+        } catch (e) { console.warn("Discord SDK init failed", e); }
+      };
+      document.head.appendChild(ds);
+    }
 
     var script = document.createElement("script");
     script.src = loaderUrl;
